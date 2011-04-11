@@ -1,0 +1,5 @@
+#Mon Apr 11 06:14:48 AST 2011
+eclipse.preferences.version=1
+launchConfigExternalUrlPrefix=http\://localhost/EntersolTools/war
+warSrcDir=war
+warSrcDirIsOutput=true

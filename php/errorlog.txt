@@ -1,0 +1,6 @@
+Use of undefined constant DB1 - assumed 'DB1' in /var/www/gdbc/php/System.class.php at line 44
+Undefined variable: useer in /var/www/gdbc/php/IOGate.class.php at line 137
+Undefined variable: useer in /var/www/gdbc/php/IOGate.class.php at line 140
+select * from users where userId='polla' and password = 'tano'
+Authentication for 'polla' is Failed
+Authentication for 'polla' is Failed
