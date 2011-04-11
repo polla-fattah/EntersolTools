@@ -11,11 +11,15 @@
   <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/>     -->
 
   <!-- Other module inherits                                      -->
+  <inherits name="org.itemscript.Itemscript"/>
 
   <!-- Specify the app entry point class.                         -->
   <entry-point class='net.entersol.client.EntersolTools'/>
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>
+  <source path='iogate'/>
+  <source path='gdbc'/>
+  <source path='indexeddb'/>
 
 </module>
