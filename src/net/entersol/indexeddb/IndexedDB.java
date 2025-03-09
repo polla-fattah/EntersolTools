@@ -16,40 +16,11 @@ public class IndexedDB {
 		browserFixing();
 		openDatabase( databaseName, discription);
 	}
-	public void createObjectStore(String name, String id, boolean useAuto){
-		Window.alert("Elaf " + database);
-		createObjectStore( this, name, id, useAuto);
-	}
-	
+
 	public native void synchronize(IndexedDB me, String version)/*-{
 		
 	}-*/;
 
-	public void add(String objectStore, JsonArray rows){
-		add(this, objectStore, rows);
-	}
-	public void put(String objectStore, JsonArray rows){
-		put(this, objectStore, rows);
-	}
-	public void delete(String objectStore, JsonArray keys){
-		delete(this, objectStore, keys);
-	}
-	public void deleteIndex(String objectStore, String properity){
-		deleteIndex(this, objectStore, properity);
-	}
-	public void clear(String objectStore){
-		clear(this, objectStore);
-	}
-	public void get(String objectStore, String key ){
-		get(this,objectStore, key );
-	}
-
-	public void getAll(String objectStore){
-		getAll(this, objectStore);
-	}
-	public void indexGet( String objectName, String index, String properity){
-		indexGet(this, objectName, index, properity);
-	}
 	private native void indexGet(IndexedDB me, String objectName, String index, String properity)/*-{
 		var db = me.@net.entersol.indexeddb.IndexedDB::database;
 		var objectStore = db.transaction(objectName).objectStore(objectName);
@@ -71,11 +42,9 @@ public class IndexedDB {
 		};
 	
 	}-*/;
-	public void indexGetKey( String objectName, String index, String properity){
-		indexGet(this, objectName, index, properity);
-	}
-	private native void indexGetKey(IndexedDB me, String objectName, String index, String properity)/*-{
-		var db = me.@net.entersol.indexeddb.IndexedDB::database;
+	
+	private native void indexGetKey(String objectName, String index, String properity)/*-{
+		var db = this.@net.entersol.indexeddb.IndexedDB::database;
 		var objectStore = db.transaction(objectName).objectStore(objectName);
 		var objects = [];
 		var index = objectStore.index(index);
@@ -113,7 +82,7 @@ public class IndexedDB {
 
 	// used by normal createObjectStore
 	private native void deleteIndex(IndexedDB me, String objectStore, String properity)/*-{
-		db = me.@net.entersol.indexeddb.IndexedDB::database;
+		db = this.@net.entersol.indexeddb.IndexedDB::database;
 	
 		var versionRequest = db.setVersion( eval(db.version) + 1 );
 		versionRequest.onsuccess = function ( e ) {
@@ -122,81 +91,108 @@ public class IndexedDB {
 			store.deleteIndex(properity);
 		};
 	}-*/;
+	
 	private native void clear(IndexedDB me, String objectStore)/*-{
-		db = me.@net.entersol.indexeddb.IndexedDB::database;
+		db = this.@net.entersol.indexeddb.IndexedDB::database;
 
 		var trans = db.transaction([objectStore], IDBTransaction.READ_WRITE, 0);
 		var store = trans.objectStore(objectStore);
 		store.clear();
 	}-*/;
-	private native void createObjectStore(IndexedDB me, String name, String id, boolean useAuto)/*-{
-		
-		db = me.@net.entersol.indexeddb.IndexedDB::database;
-		$wnd.alert("Sanar" + db);
+	
+	public native void createObjectStore(String name, String id, boolean useAuto)/*-{
+		db = this.@net.entersol.indexeddb.IndexedDB::database;
 		version = eval (db.version) + 1;
 		var versionRequest = db.setVersion(version);
-			
+		
 		versionRequest.onsuccess = function ( e ) {
-			//TODO what to store from the following function
-			db.createObjectStore( name, id, useAuto );
+			
+
+			if(db.objectStoreNames.contains(name)) {
+              db.deleteObjectStore(name);
+            }
+			
+			//DoFuture what to store from the following function
+			db.createObjectStore( name, {keyPath:id}, useAuto );
 		};
 			
-		me.@net.entersol.indexeddb.IndexedDB::onCreateObjectStoreSuccess(Ljava/lang/String;)(db.version);
-	}-*/;	
+		this.@net.entersol.indexeddb.IndexedDB::onCreateObjectStoreSuccess(Ljava/lang/String;)(db.version);
+	}-*/;
 	
-	//Used by normal add
-	private native void add(IndexedDB me, String objectStore, JsonArray rows)/*-{
-		rows = eval ("(" + rows +")");
-		db = me.@net.entersol.indexeddb.IndexedDB::database;
-		var transaction = db.transaction([objectStore], IDBTransaction.READ_WRITE);
+	public native void add(String objectStore, JsonArray rows)/*-{
+		rows = eval ( "(" + rows + ")");
+		var that = this;
+	
+		db = that.@net.entersol.indexeddb.IndexedDB::database;
+		var transaction;
+		try{
+			var transaction = db.transaction([objectStore], $wnd.IDBTransaction.READ_WRITE,0);
+		}
+		catch(ex){			
+			$wnd.alert(ex);
+		}
 		
 		// Do something when all the data is added to the database.
 		transaction.oncomplete = function(event) {
-			me.@net.entersol.indexeddb.IndexedDB::onAddComplete()();
+			that.@net.entersol.indexeddb.IndexedDB::onAddComplete()();
 		};
 		
 		transaction.onerror = function(event) {
-			me.@net.entersol.indexeddb.IndexedDB::onAddFailed(Ljava/lang/String;)(db.version);
+			that.@net.entersol.indexeddb.IndexedDB::onAddFailed(Ljava/lang/String;)(event.target.errorCode);
 		};
 		
 		var objectStore = transaction.objectStore(objectStore);
-		for (row in rows) {
-		  var request = objectStore.add(row);
+		
+		for (i = 0; i < rows.length; i++) {
+			try{
+				//FIXME onsuccess and onfailed 
+				var request = objectStore.put(rows[i]);
+			}
+			catch(ex){
+				$wnd.alert("Add Catch" + ex);
+			}
 		}
 	}-*/;
+	
 	//Used by normal put
-	private native void put(IndexedDB me, String objectStore, JsonArray rows)/*-{
+	public native void put(String objectStore, JsonArray rows)/*-{
 		rows = eval ("(" + rows +")");
-		db = me.@net.entersol.indexeddb.IndexedDB::database;
-		var transaction = db.transaction([objectStore], IDBTransaction.READ_WRITE);
+		var that = this;
+		db = that.@net.entersol.indexeddb.IndexedDB::database;
+		var transaction = db.transaction([objectStore], $wnd.IDBTransaction.READ_WRITE);
 		
 		// Do something when all the data is added to the database.
 		transaction.oncomplete = function(event) {
-			me.@net.entersol.indexeddb.IndexedDB::onAddComplete()();
+			that.@net.entersol.indexeddb.IndexedDB::onAddComplete()();
 		};
 		
 		transaction.onerror = function(event) {
-			me.@net.entersol.indexeddb.IndexedDB::onAddFailed(Ljava/lang/String;)(db.version);
+			that.@net.entersol.indexeddb.IndexedDB::onAddFailed(Ljava/lang/String;)(db.version);
 		};
 		
 		var objectStore = transaction.objectStore(objectStore);
-		for (row in rows) {
-		  var request = objectStore.put(row);
-		}
-	}-*/;
+		for (i = 0; i < rows.length; i++) {
+			try{
+				var request = objectStore.put(rows[i]);
+			}
+			catch(ex){
+				$wnd.alert("put catch"+ex);
+			}
+		}	}-*/;
 	//Used by normal delete
 	private native void delete(IndexedDB me, String objectStore, JsonArray keys)/*-{
 		rows = eval ("(" + rows +")");
-		db = me.@net.entersol.indexeddb.IndexedDB::database;
-		var transaction = db.transaction([objectStore], IDBTransaction.READ_WRITE);
+		var that = this;
+		db = that.@net.entersol.indexeddb.IndexedDB::database;
+		var transaction = db.transaction([objectStore], $wnd.IDBTransaction.READ_WRITE);
 		
 		// Do something when all the data is added to the database.
 		transaction.oncomplete = function(event) {
-			me.@net.entersol.indexeddb.IndexedDB::onAddComplete()();
+			that.@net.entersol.indexeddb.IndexedDB::onAddComplete()();
 		};
 		
 		transaction.onerror = function(event) {
-			me.@net.entersol.indexeddb.IndexedDB::onAddFailed(Ljava/lang/String;)(db.version);
+			that.@net.entersol.indexeddb.IndexedDB::onAddFailed(Ljava/lang/String;)(db.version);
 		};
 		
 		var objectStore = transaction.objectStore(objectStore);
@@ -207,7 +203,7 @@ public class IndexedDB {
 
 	//Used by normal get
 	private native void get(IndexedDB me, String objectStore, String key )/*-{
-		db = me.@net.entersol.indexeddb.IndexedDB::database;
+		db = this.@net.entersol.indexeddb.IndexedDB::database;
 		var transaction = db.transaction([objectStore]);
 		var objectStore = transaction.objectStore(objectStore);
 		var request = objectStore.get(key);
@@ -217,31 +213,47 @@ public class IndexedDB {
 		request.onsuccess = function(event) {
 		  onGetSuccess (request.result);
 		};
-	}-*/; 
-	private native void getAll(IndexedDB me, String objectStore)/*-{
-	db = me.@net.entersol.indexeddb.IndexedDB::database;
-	var objectStore = db.transaction(objectStore).objectStore(objectStore);
-	var objects = [];
-	var cc = objectStore.openCursor();
-	cc.onsuccess = function(event) {
-	  var cursor = event.target.result;
-	  if (cursor) {
-	    objects.push(cursor.value);
-	    eval("cursor.continue()");
-	  }
-	  else {
-	    onGetAllSuccess(objects);
-	  }
-	};
-	cc.onerror = function(event){
-		onGetAllFailed(event.code, event.message);
-	};
-}-*/;
+	}-*/;
+	public native void getAll(String objectStore)/*-{
+		var that = this;
+		var objectStore;
+		db = that.@net.entersol.indexeddb.IndexedDB::database;
+		try{
+			objectStore = db.transaction(objectStore).objectStore(objectStore);	
+		}
+		catch(ex){
+			$wnd.alert("getAll catch " + ex);
+		}
+		
+		var objects = [];
+		var cc = objectStore.openCursor();
+		
+		cc.onsuccess = function(event) {
+		  cursor = event.target.result;
+		  $wnd.alert(eval("cursor"));
+		  if (cursor) {
+		  	try{
+		    	objects.push(cursor.value);
+		    	//$wnd.alert(cursor.value);
+		  	}
+		  	catch(exce){
+		  		$wnd.alert(exce);
+		  	}
+		   // $wnd.alert("Polla");
+		  }
+		  else{
+		  	$wnd.alert(objects[5].Age + "This is true");
+		    that.@net.entersol.indexeddb.IndexedDB::onGetAllSuccess(Lorg/itemscript/core/values/JsonArray;)(objects);
+		  }
+		};
+		cc.onerror = function(event){
+			//$wnd.alert("onGetAllFailed");
+			that.@net.entersol.indexeddb.IndexedDB::onGetFailed(Ljava/lang/String;I)(event.message, event.code);
+		};
+	}-*/;
 
-	
 	//Used by constructors
 	private native void openDatabase(String name, String discription)/*-{
-		$wnd.alert("inside openDatabase");
 		var that = this;
 		var dbRequest = $wnd.indexedDB.open(name, discription);
 		
@@ -285,37 +297,29 @@ public class IndexedDB {
 
 	public void onOpenDatabaseSuccess(String version){
 		
-	}	
+	}
 	public void onCreateObjectStoreSuccess(String version){
-		Window.alert("Hi");
 	}
 
 	public void onAddComplete(){
-		
+		Window.alert("Sucssess");
 	}
 	public void onAddFailed(String message){
-		
+		Window.alert("onAddFailed " + message);
 	}
 	
 	public void onGetSuccess(JsonObject row){
 		
 	}
-	public void onGetAllFailed(int code, String exception){
-		
-	}
 	public void onGetAllSuccess(JsonArray rows){
-		
+		Window.alert("Get " + rows.toJsonString());
 	}
-	public void onGetFailed(int code, String exception){
+	public void onGetFailed(String exception, int code){
 		
 	}
 	
 	public void onIndexGetSuccess(JsonArray rows){
 		
 	}
-	public void onIndexGetFailed(int code, String exception){
-		
-	}
-
 }
 

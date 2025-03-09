@@ -44,7 +44,7 @@ public class SqlException extends IOGateException {
 	 * @param message
 	 */
 	public SqlException(String message) {
-		//TODO make use of other kind of exception messages if possible 
+		//DoFuture make use of other kind of exception messages if possible 
 		super(message);
 	}
 

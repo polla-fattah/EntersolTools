@@ -39,7 +39,7 @@ public class Security {
 	 * @return String of MD5 code for the 
 	 */
 	public final static String md5(String m){
-		//TODO add real MD5
+		//DoFuture add real MD5
 		return m;
 	}
 	/**
@@ -49,7 +49,7 @@ public class Security {
 	 * @see encrypt 
 	 */
 	public final static  String decrypt(String message) {
-		//TODO add real security
+		//DoFuture add real security
 		return message;
 	}
 	/**
@@ -59,7 +59,7 @@ public class Security {
 	 * @return String ciphered text
 	 */
 	public final static  String encrypt(String message){
-		//TODO add real security
+		//DoFuture add real security
 		return message;
 	}
 

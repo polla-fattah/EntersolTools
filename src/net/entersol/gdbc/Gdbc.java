@@ -176,7 +176,7 @@ public class Gdbc implements IOResponce {
 	 */
 	@Override
 	public void onCallBackFailure(IOGateException ioge) {
-		//TODO change (currentIndex - 1)  to better index for failures 
+		//DoFuture change (currentIndex - 1)  to better index for failures 
 		ArrayList<SqlStatment> stmts = transactions.get(currentIndex - 1);
 		SqlException sqlExp = new SqlException(ioge.getMessage());
 		sqlExp.setStatusText(ioge.getStatusText());
